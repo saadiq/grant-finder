@@ -1,5 +1,5 @@
-from funder_prospector import report
-from funder_prospector.models import FunderProspect, OrgProfile
+from grant_finder import report
+from grant_finder.models import FunderProspect, OrgProfile
 
 
 def test_render_contains_funder_and_amount():

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from funder_prospector import propublica
-from funder_prospector.models import OrgProfile
+from grant_finder import propublica
+from grant_finder.models import OrgProfile
 
 FIX = Path(__file__).parent / "fixtures"
 
@@ -31,7 +31,7 @@ def test_find_peers_filters_ntee_and_excludes_self():
 
 def test_find_peers_dedup_and_cap():
     """Verifies dedup (same EIN across two keyword passes appears once) and cap enforcement."""
-    from funder_prospector.models import Peer
+    from grant_finder.models import Peer
 
     peer_a = Peer("111111111", "Read Alliance", "B92", "Boston", "MA")
     peer_b = Peer("222222222", "Literacy League", "B91", "Austin", "TX")

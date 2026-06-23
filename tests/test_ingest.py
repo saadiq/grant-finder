@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from funder_prospector import ingest, db
+from grant_finder import ingest, db
 
 FIX = Path(__file__).parent / "fixtures"
 

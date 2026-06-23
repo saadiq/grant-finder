@@ -1,7 +1,7 @@
 from pathlib import Path
-from funder_prospector import bmf, db
-from funder_prospector.models import GrantEdge
-from funder_prospector import ingest
+from grant_finder import bmf, db
+from grant_finder.models import GrantEdge
+from grant_finder import ingest
 
 FIX = Path(__file__).parent / "fixtures"
 

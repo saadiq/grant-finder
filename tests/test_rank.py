@@ -1,5 +1,5 @@
-from funder_prospector import db, rank, ingest
-from funder_prospector.models import GrantEdge
+from grant_finder import db, rank, ingest
+from grant_finder.models import GrantEdge
 
 
 def _rows(conn):

@@ -1,4 +1,4 @@
-from funder_prospector import db
+from grant_finder import db
 
 
 def test_init_db_creates_tables_and_roundtrips():

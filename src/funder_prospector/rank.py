@@ -16,7 +16,7 @@ def rank_funders(edges):
         recent = max(years) if years else None
         purposes = sorted({(r["purpose"] or "").strip()
                            for r in rows if (r["purpose"] or "").strip()})[:5]
-        score = len(peers) * 10 + math.log10(total + 1) * 2 + (recent or 0) * 0.01
+        score = len(peers) * 10 + math.log10(max(total, 0) + 1) * 2 + (recent or 0) * 0.01
         out.append(FunderProspect(ein, rows[0]["funder_name"], rows[0]["funder_type"],
                                   len(peers), total, recent, purposes, round(score, 2)))
     out.sort(key=lambda p: p.score, reverse=True)

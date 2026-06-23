@@ -11,8 +11,11 @@ def _setup(args):
         print("BMF:", csv_path, bmf.load_bmf_csv(conn, csv_path))
     n = ingest.load_bundle(conn, args.bundle_dir)
     print("grant edges:", n)
-    print("resolved PF recipients:", bmf.resolve_pf_recipients(conn))
+    # Indexes (esp. idx_orgs_state_name) must exist BEFORE resolve_pf_recipients,
+    # which does one blocked fuzzy lookup per PF grant against the ~2M-row orgs
+    # table — without the index each lookup full-scans and the build never finishes.
     db.create_indexes(conn)
+    print("resolved PF recipients:", bmf.resolve_pf_recipients(conn))
 
 
 def _run(args):

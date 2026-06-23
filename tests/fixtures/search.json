@@ -1,0 +1,5 @@
+{"total_results": 3, "organizations": [
+  {"ein": 133957095, "name": "Read Alliance", "raw_ntee_code": "B92", "city": "New York", "state": "NY"},
+  {"ein": 591234567, "name": "Some Food Bank", "raw_ntee_code": "K31", "city": "Miami", "state": "FL"},
+  {"ein": 833401365, "name": "Our Kids Read Association", "raw_ntee_code": "B90", "city": "Laurel", "state": "MD"}
+]}

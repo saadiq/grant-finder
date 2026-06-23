@@ -1,9 +1,9 @@
 ---
-name: funder-prospector
+name: grant-finder
 description: Find foundations and grantmaking charities that give to organizations like a given nonprofit, by reconstructing a recipient→funder view from IRS 990 e-file grant records. Use when a nonprofit wants a prospect list of likely funders. Requires a one-time local data build.
 ---
 
-# Funder Prospector
+# Grant Finder
 
 Given a nonprofit's name, find funders who already give to **organizations like it** —
 by parsing IRS 990 grant records (990-PF + Schedule I) into a local SQLite index, then

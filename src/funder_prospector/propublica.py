@@ -42,10 +42,12 @@ def search(q, ntee_id=None, state=None, page=0, fetch=requests.get):
 
 
 def find_peers(profile, keywords=("reading", "literacy"), ntee_prefixes=("B",),
-               cap=150, searcher=search):
+               ntee_id=2, cap=150, searcher=search):
+    # ntee_id: ProPublica numeric NTEE category (2 = Education); must correspond to
+    # ntee_prefixes (e.g. B-codes → 2). Default (2 / B) preserves existing behaviour.
     seen, peers = set(), []
     for kw in keywords:
-        for p in searcher(kw, ntee_id=2):  # 2 = Education category
+        for p in searcher(kw, ntee_id=ntee_id):
             if p.ein in seen or p.ein == profile.ein:
                 continue
             if not any(p.ntee.startswith(pre) for pre in ntee_prefixes):

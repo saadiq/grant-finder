@@ -96,6 +96,50 @@ ranked **markdown prospect list** to stdout with evidence and filing links. The 
 uv run grant-finder run --db data/grants.db "Our Kids Read" --state MD > prospects.md
 ```
 
+## Using it from Claude Code (Agent Skill)
+
+This repo ships an [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) at
+[`.claude/skills/grant-finder/SKILL.md`](.claude/skills/grant-finder/SKILL.md) so you can
+drive the tool in natural language instead of remembering CLI flags.
+
+**How it works.** A skill is markdown with a `name` + `description` in its frontmatter.
+Claude Code loads only that metadata at startup; when your request matches the description,
+it pulls in the full skill body and follows it — here, that body tells Claude how to build
+the index and run `grant-finder`. So once the index exists, you can just ask:
+
+> *"Who funds Our Kids Read in MD?"*
+
+and Claude runs the right `uv run grant-finder run …` for you.
+
+### Project skill (already set up)
+
+Because the skill lives under `.claude/skills/` in this repo, it **auto-activates whenever
+Claude Code is working inside this clone** — no install step. Just `uv sync`, build the index
+once, and ask. This is the recommended way to use it (the skill assumes repo-relative paths
+like `data/grants.db`).
+
+### Installing it as a personal skill
+
+To make the skill available in *all* your projects (not just this repo), copy it into your
+personal skills directory:
+
+```bash
+mkdir -p ~/.claude/skills/grant-finder
+cp .claude/skills/grant-finder/SKILL.md ~/.claude/skills/grant-finder/SKILL.md
+```
+
+Claude Code discovers skills from two locations:
+
+| Scope | Path | Availability |
+|-------|------|-------------|
+| **Project** | `<repo>/.claude/skills/<name>/SKILL.md` | Auto-loads when working in that repo; committed, so it travels with the clone |
+| **Personal** | `~/.claude/skills/<name>/SKILL.md` | Available across all your projects |
+
+Note that the skill body uses **repo-relative paths**, so even when installed personally
+you'll want Claude to be working from a `grant-finder` checkout with the index already built.
+Verify either install with `/help` → skills, or just make a request that matches the skill's
+description and watch Claude invoke it.
+
 ## Caveats
 
 - **Warm leads, not application instructions.** Output means "funders who demonstrably give

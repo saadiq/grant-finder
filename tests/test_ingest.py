@@ -1,5 +1,6 @@
+import shutil
 from pathlib import Path
-from funder_prospector import ingest
+from funder_prospector import ingest, db
 
 FIX = Path(__file__).parent / "fixtures"
 
@@ -20,3 +21,16 @@ def test_parse_990_schedule_i_grant():
     e = edges[0]
     assert e.recipient_ein == "581309309" and e.source == "SchedI"
     assert e.amount == 47459 + 580600 and e.tax_year == 2023
+
+
+def test_load_bundle_inserts_edges(tmp_path):
+    bundle = tmp_path / "bundle"
+    bundle.mkdir()
+    shutil.copy(FIX / "990pf.xml", bundle / "a_public.xml")
+    shutil.copy(FIX / "990schedi.xml", bundle / "b_public.xml")
+    (bundle / "junk_public.xml").write_text("not xml")
+    conn = db.init_db(":memory:")
+    n = ingest.load_bundle(conn, str(bundle))
+    assert n == 2
+    rows = conn.execute("SELECT source FROM grants ORDER BY source").fetchall()
+    assert [r["source"] for r in rows] == ["PF-grant", "SchedI"]

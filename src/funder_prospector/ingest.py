@@ -1,6 +1,7 @@
 import glob
 import os
 import xml.etree.ElementTree as ET
+import requests
 
 from .models import GrantEdge
 
@@ -49,3 +50,37 @@ def parse_filing(path):
                 _t(g, "i:PurposeOfGrantTxt") or _t(g, "i:GrantOrAssistanceDesc"),
                 amt, "SchedI", year, None))
     return edges
+
+
+BUNDLE_BASE = "https://apps.irs.gov/pub/epostcard/990/xml"
+
+
+def insert_edges(conn, edges):
+    conn.executemany(
+        "INSERT INTO grants VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        [(e.funder_ein, e.funder_name, e.funder_type, e.recipient_name,
+          e.recipient_ein, e.recipient_city, e.recipient_state, e.purpose,
+          e.amount, e.source, e.tax_year, e.resolved_score) for e in edges])
+    conn.commit()
+
+
+def load_bundle(conn, directory):
+    total = 0
+    for path in sorted(glob.glob(os.path.join(directory, "*.xml"))):
+        try:
+            edges = parse_filing(path)
+        except ET.ParseError:
+            continue
+        if edges:
+            insert_edges(conn, edges)
+            total += len(edges)
+    return total
+
+
+def download_bundle(year, filename, dest, fetch=requests.get):
+    r = fetch(f"{BUNDLE_BASE}/{year}/{filename}", stream=True, timeout=300)
+    r.raise_for_status()
+    with open(dest, "wb") as fh:
+        for chunk in r.iter_content(1 << 20):
+            fh.write(chunk)
+    return dest

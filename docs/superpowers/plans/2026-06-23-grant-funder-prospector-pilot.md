@@ -652,7 +652,7 @@ git commit -m "feat: fuzzy-resolve 990-PF recipients to EIN via BMF"
 
 **Interfaces:**
 - Consumes: `grants` + `orgs` tables.
-- Produces: `match.find_funder_edges(conn, peer_eins: list[str])->list[sqlite3.Row]` (grant rows whose `recipient_ein` is in `peer_eins` and `amount` is not null); `match.find_edges_by_ntee(conn, ntee_prefixes: list[str])->list[sqlite3.Row]` (grant rows whose resolved recipient's BMF NTEE starts with any prefix).
+- Produces: `match.find_funder_edges(conn, peer_eins: list[str])->list[sqlite3.Row]` (grant rows whose `recipient_ein` is in `peer_eins` and `amount` is not null); `match.find_edges_by_ntee(conn, ntee_prefixes: list[str])->list[sqlite3.Row]` (grant rows whose resolved recipient's BMF NTEE starts with any prefix). Both result sets include a `rowid` column so the pipeline (Task 10) can union them and drop duplicates (a grant that is both a peer match and an NTEE match).
 
 - [ ] **Step 1: Write the failing test** — `tests/test_match.py`
 
@@ -697,7 +697,7 @@ def find_funder_edges(conn, peer_eins):
     if not peer_eins:
         return []
     placeholders = ",".join("?" * len(peer_eins))
-    q = (f"SELECT * FROM grants WHERE recipient_ein IN ({placeholders}) "
+    q = (f"SELECT rowid, * FROM grants WHERE recipient_ein IN ({placeholders}) "
          "AND amount IS NOT NULL")
     return conn.execute(q, peer_eins).fetchall()
 
@@ -706,7 +706,7 @@ def find_edges_by_ntee(conn, ntee_prefixes):
     if not ntee_prefixes:
         return []
     clause = " OR ".join("o.ntee LIKE ?" for _ in ntee_prefixes)
-    q = ("SELECT g.* FROM grants g JOIN orgs o ON g.recipient_ein = o.ein "
+    q = ("SELECT g.rowid AS rowid, g.* FROM grants g JOIN orgs o ON g.recipient_ein = o.ein "
          f"WHERE g.amount IS NOT NULL AND ({clause})")
     return conn.execute(q, [p + "%" for p in ntee_prefixes]).fetchall()
 ```
@@ -1008,7 +1008,7 @@ git commit -m "feat: ProPublica client for org profile and peer discovery"
 
 **Interfaces:**
 - Consumes: `match`, `rank`, `report` (Tasks 6–8), `OrgProfile`, `Peer`.
-- Produces: `pipeline.run_prospect(conn, profile, peers)->str` — runs `find_funder_edges` on the peer EINs, ranks, and renders. Pure given a built `conn` (no network).
+- Produces: `pipeline.run_prospect(conn, profile, peers, ntee_prefixes=None)->str` — unions exact peer-EIN matches (`find_funder_edges`) with NTEE-widened matches (`find_edges_by_ntee`), dedups by `rowid`, ranks, and renders. When `ntee_prefixes` is None it defaults to the distinct NTEE codes of the peers, so widening targets the peers' specific literacy/education codes (e.g. B92), not all of Education. Pure given a built `conn` (no network).
 
 - [ ] **Step 1: Write the failing test** — `tests/test_pipeline.py`
 
@@ -1020,16 +1020,23 @@ from funder_prospector.models import GrantEdge, OrgProfile, Peer
 FIX = Path(__file__).parent / "fixtures"
 
 
-def test_run_prospect_end_to_end_offline():
+def test_run_prospect_unions_peer_and_ntee_matches():
     conn = db.init_db(":memory:")
     bmf.load_bmf_csv(conn, str(FIX / "bmf_sample.csv"))
-    ingest.insert_edges(conn, [GrantEdge(
-        "F1", "Battin Foundation", "990PF", "READ ALLIANCE", "133957095",
-        "NEW YORK", "NY", "YOUTH LITERACY", 210000, "PF-grant", 2022, 95.0)])
+    # a second B92 (literacy) org that is NOT in the peer list
+    conn.execute("INSERT INTO orgs (ein, name, ntee, state) VALUES ('222','OTHER LITERACY','B92','NY')")
+    conn.commit()
+    ingest.insert_edges(conn, [
+        GrantEdge("F1", "Battin Foundation", "990PF", "READ ALLIANCE", "133957095",
+                  "NEW YORK", "NY", "YOUTH LITERACY", 210000, "PF-grant", 2022, 95.0),
+        GrantEdge("F2", "Other Funder", "990", "OTHER LITERACY", "222",
+                  "NEW YORK", "NY", "READING", 5000, "SchedI", 2023, None),
+    ])
     profile = OrgProfile("833401365", "Our Kids Read", "B90", "Laurel", "MD", 311838)
     peers = [Peer("133957095", "Read Alliance", "B92", "New York", "NY")]
     md = pipeline.run_prospect(conn, profile, peers)
-    assert "Battin Foundation" in md and "$210,000" in md
+    assert "Battin Foundation" in md and "$210,000" in md   # exact peer-EIN match
+    assert "Other Funder" in md                              # NTEE-widened (B92), not a peer EIN
 ```
 
 - [ ] **Step 2: Run it** — `uv run pytest tests/test_pipeline.py -v` — Expected: FAIL.
@@ -1040,9 +1047,22 @@ def test_run_prospect_end_to_end_offline():
 from . import match, rank, report
 
 
-def run_prospect(conn, profile, peers):
-    edges = match.find_funder_edges(conn, [p.ein for p in peers])
-    prospects = rank.rank_funders(edges)
+def _dedupe(rows):
+    seen, out = set(), []
+    for r in rows:
+        if r["rowid"] in seen:
+            continue
+        seen.add(r["rowid"])
+        out.append(r)
+    return out
+
+
+def run_prospect(conn, profile, peers, ntee_prefixes=None):
+    if ntee_prefixes is None:
+        ntee_prefixes = sorted({p.ntee for p in peers if p.ntee})
+    edges = list(match.find_funder_edges(conn, [p.ein for p in peers]))
+    edges += match.find_edges_by_ntee(conn, ntee_prefixes)
+    prospects = rank.rank_funders(_dedupe(edges))
     return report.render(prospects, profile)
 ```
 

@@ -12,7 +12,7 @@ matching funders against the nonprofit's peers (by EIN) and cause (by NTEE code)
 ## Prerequisites
 
 - Python ≥ 3.11 and `uv`.
-- From the repo root: `uv sync` (installs deps + the `prospect` CLI into `.venv`).
+- From the repo root: `uv sync` (installs deps + the `grant-finder` CLI into `.venv`).
 
 ## Two-step usage
 
@@ -28,7 +28,7 @@ Download the data first (these are large; `data/` is git-ignored):
 Then build:
 
 ```bash
-uv run prospect setup --db data/grants.db --bmf-dir data/bmf --bundle-dir data/bundles
+uv run grant-finder setup --db data/grants.db --bmf-dir data/bmf --bundle-dir data/bundles
 ```
 
 This loads the BMF (org identity/NTEE/size), parses every filing's grant records into the
@@ -39,7 +39,7 @@ more bundles widens coverage.**
 ### 2. Run a prospect search (fast)
 
 ```bash
-uv run prospect run --db data/grants.db "Our Kids Read" --state MD
+uv run grant-finder run --db data/grants.db "Our Kids Read" --state MD
 ```
 
 Looks the org up on ProPublica (profile + peers), queries the local index, and prints a

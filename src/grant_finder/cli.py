@@ -32,7 +32,7 @@ def _run(args):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="prospect")
+    ap = argparse.ArgumentParser(prog="grant-finder")
     sub = ap.add_subparsers(required=True)
     s = sub.add_parser("setup")
     s.add_argument("--db", required=True)

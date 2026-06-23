@@ -20,7 +20,7 @@ against a nonprofit's peers. See `docs/superpowers/specs/` for the design and
 - Tests are fully offline (network calls are behind injectable `fetch`/`searcher` params);
   they run in well under a second. No build step.
 
-The CLI is a two-step flow (see `SKILL.md` for the data download details):
+The CLI is a two-step flow (see the `README.md` for the data download details):
 
 ```bash
 # 1. one-time index build (SLOW — minutes per bundle; download data into data/ first)

@@ -1,6 +1,7 @@
 import argparse
 import glob
 import os
+import sys
 
 from . import bmf, db, ingest, pipeline, propublica
 
@@ -25,6 +26,7 @@ def _run(args):
     if profile is None:
         raise SystemExit(f"no org found for {args.name!r}")
     prof = propublica.get_org(profile.ein)
+    print(f"Resolved org: {prof.name} (EIN {prof.ein}, NTEE {prof.ntee}, {prof.city} {prof.state})", file=sys.stderr)
     peer_list = propublica.find_peers(prof)
     print(pipeline.run_prospect(conn, prof, peer_list))
 

@@ -30,4 +30,5 @@ def init_db(path):
 def create_indexes(conn):
     conn.execute("CREATE INDEX IF NOT EXISTS idx_grants_rein ON grants(recipient_ein)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_orgs_state_name ON orgs(state, name)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_orgs_ntee ON orgs(ntee)")
     conn.commit()

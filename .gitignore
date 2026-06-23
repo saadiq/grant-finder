@@ -1,0 +1,9 @@
+# Data artifacts — large / regenerated, never committed
+*.db
+*.sqlite
+*.zip
+data/
+bundles/
+*.csv
+__pycache__/
+.venv/

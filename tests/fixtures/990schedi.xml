@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Return xmlns="http://www.irs.gov/efile">
+  <ReturnHeader>
+    <TaxPeriodEndDt>2023-06-30</TaxPeriodEndDt>
+    <ReturnTypeCd>990</ReturnTypeCd>
+    <Filer><EIN>592116568</EIN>
+      <BusinessName><BusinessNameLine1Txt>TEST CHARITY</BusinessNameLine1Txt></BusinessName></Filer>
+  </ReturnHeader>
+  <ReturnData><IRS990ScheduleI>
+    <RecipientTable>
+      <RecipientBusinessName><BusinessNameLine1Txt>FOOTHILLS INDUSTRIES</BusinessNameLine1Txt></RecipientBusinessName>
+      <RecipientEIN>581309309</RecipientEIN>
+      <USAddress><CityNm>MARION</CityNm><StateAbbreviationCd>NC</StateAbbreviationCd></USAddress>
+      <PurposeOfGrantTxt>PRODUCTION EQUIPMENT</PurposeOfGrantTxt>
+      <CashGrantAmt>47459</CashGrantAmt>
+      <NonCashAssistanceAmt>580600</NonCashAssistanceAmt>
+    </RecipientTable>
+  </IRS990ScheduleI></ReturnData>
+</Return>

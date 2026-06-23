@@ -67,7 +67,9 @@ Modules (each independently understandable/testable):
   peer search by NTEE + keywords + size band → peer list with EINs.
 - **`ingest`** — download bundles + `index_{year}.csv`; parse 990-PF
   `GrantOrContributionPdDurYrGrp` and Schedule I `RecipientTable` → `grants` table.
-  (Reference parser already written and validated: `scripts/build_index.py`.)
+  A validated **single-bundle proof of concept** exists at `scripts/build_index.py`; the
+  production `ingest` extends it with `tax_year`, multi-bundle/multi-year loading, and
+  resumability.
 - **`bmf`** — load BMF → `orgs` table; expose a resolver `(name, city, state) → best EIN`
   (blocking on state + name token, fuzzy on name via rapidfuzz).
 - **`match`** — given peer EINs + peer NTEE set, find funders: exact EIN join on
